@@ -5,16 +5,13 @@ import (
 	"go-react-ecommerce-app/internal/api/rest"
 	"go-react-ecommerce-app/internal/api/rest/handlers"
 	"log"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func StartServer(config config.AppConfig) {
 	app := fiber.New()
-
-	app.Get("/health", HealthCheck)
-
+	// app.Get("/health", HealthCheck)
 	rh := &rest.RestHandler{
 		App: app,
 	}
@@ -25,11 +22,11 @@ func StartServer(config config.AppConfig) {
 	app.Listen(config.ServerPort)
 }
 
-func HealthCheck(ctx *fiber.Ctx) error {
-	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": "Health check successful",
-	})
-}
+// func HealthCheck(ctx *fiber.Ctx) error {
+// 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
+// 		"message": "Health check successful",
+// 	})
+// }
 
 func setupRoutes(rh *rest.RestHandler) {
 	// user handler

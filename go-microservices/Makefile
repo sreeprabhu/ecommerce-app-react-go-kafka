@@ -1,8 +1,10 @@
+# Check for the operating system
 ifeq ($(OS),Windows_NT)
-    $env:APP_ENV="dev";
+    SET_ENV=set APP_ENV="dev"
 else
-    SET_ENV=APP_ENV=dev
+    SET_ENV=APP_ENV="dev"
 endif
 
+# Server Command (using nodemon)
 server:
-	nodemon --watch './**/*.go' --signal SIGTERM --exec $(SET_ENV) 'go' run main.go
+	$(SET_ENV) & nodemon --watch './**/*.go' --exec "go run main.go"

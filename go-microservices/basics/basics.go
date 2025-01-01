@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-react-ecommerce-app/configs"
+	_ "go-react-ecommerce-app/configs"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -44,7 +44,7 @@ func main() {
 
 	// MyHelperFunction()
 
-	configs.LoadAppSettings()
+	// configs.LoadAppSettings()
 
 	// Basic Types: int, float, string, bool
 

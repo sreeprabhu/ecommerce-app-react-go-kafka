@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"go-react-ecommerce-app/internal/api/rest"
+	"go-react-ecommerce-app/internal/dto"
+	"go-react-ecommerce-app/internal/service"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +11,7 @@ import (
 
 type UserHandler struct {
 	// svc UserService
-
+	svc service.UserService
 }
 
 func SetupUserRoutes(rh *rest.RestHandler) {
@@ -17,14 +19,20 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 
 	// create an instance of user service & inject to handler
 
-	handler := UserHandler{}
+	svc := service.UserService{}
+	handler := UserHandler{
+		svc: svc,
+	}
+
+	// health check
+	app.Get("/health", handler.HealthCheck)
 
 	// Public endpoints
 	app.Post("/register", handler.Register)
 	app.Post("/login", handler.Login)
 
 	// Private endpoints
-	app.Post("/verify", handler.Verify)
+	app.Post("/verify", handler.VerifyCode)
 	app.Get("/verify", handler.GetVerificationCode)
 
 	app.Post("/profile", handler.CreateProfile)
@@ -43,73 +51,96 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 /*
 Receiver function - Only applicable for creating instance of the specific struct
 */
-func (r *UserHandler) Register(ctx *fiber.Ctx) error {
+func (h *UserHandler) Register(ctx *fiber.Ctx) error {
+	user := dto.UserSignup{}
+
+	// whatever is coming in request body, we will bind it into the user
+	err := ctx.BodyParser(&user)
+
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+
+	token, err := h.svc.SignUp(user)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "error on signup",
+		})
+	}
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": "register",
+		"message": token,
 	})
 }
 
-func (r *UserHandler) Login(ctx *fiber.Ctx) error {
+func (h *UserHandler) Login(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "login",
 	})
 }
 
-func (r *UserHandler) Verify(ctx *fiber.Ctx) error {
+func (h *UserHandler) HealthCheck(ctx *fiber.Ctx) error {
+	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "Health check successful!",
+	})
+}
+
+func (h *UserHandler) VerifyCode(ctx *fiber.Ctx) error {
+	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "verify code",
+	})
+}
+
+func (h *UserHandler) GetVerificationCode(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "verify",
 	})
 }
 
-func (r *UserHandler) GetVerificationCode(ctx *fiber.Ctx) error {
-	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": "verify",
-	})
-}
-
-func (r *UserHandler) CreateProfile(ctx *fiber.Ctx) error {
+func (h *UserHandler) CreateProfile(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "login",
 	})
 }
 
-func (r *UserHandler) GetProfile(ctx *fiber.Ctx) error {
+func (h *UserHandler) GetProfile(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "login",
 	})
 }
 
-func (r *UserHandler) AddToCart(ctx *fiber.Ctx) error {
+func (h *UserHandler) AddToCart(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Add to cart",
 	})
 }
 
-func (r *UserHandler) GetCart(ctx *fiber.Ctx) error {
+func (h *UserHandler) GetCart(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Get cart",
 	})
 }
 
-func (r *UserHandler) CreateOrder(ctx *fiber.Ctx) error {
+func (h *UserHandler) CreateOrder(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Create order",
 	})
 }
 
-func (r *UserHandler) GetOrders(ctx *fiber.Ctx) error {
+func (h *UserHandler) GetOrders(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Get all orders",
 	})
 }
 
-func (r *UserHandler) GetOrder(ctx *fiber.Ctx) error {
+func (h *UserHandler) GetOrder(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Get order by id",
 	})
 }
 
-func (r *UserHandler) BecomeSeller(ctx *fiber.Ctx) error {
+func (h *UserHandler) BecomeSeller(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "Become a seller",
 	})
