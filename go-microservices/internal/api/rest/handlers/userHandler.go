@@ -3,6 +3,7 @@ package handlers
 import (
 	"go-react-ecommerce-app/internal/api/rest"
 	"go-react-ecommerce-app/internal/dto"
+	"go-react-ecommerce-app/internal/repository"
 	"go-react-ecommerce-app/internal/service"
 	"net/http"
 
@@ -19,7 +20,9 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 
 	// create an instance of user service & inject to handler
 
-	svc := service.UserService{}
+	svc := service.UserService{
+		Repo: repository.NewUserRepository(rh.DB),
+	}
 	handler := UserHandler{
 		svc: svc,
 	}
@@ -75,8 +78,29 @@ func (h *UserHandler) Register(ctx *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Login(ctx *fiber.Ctx) error {
+
+	loginInput := dto.UserLogin{}
+
+	// whatever is coming in request body, we will bind it into the user
+	err := ctx.BodyParser(&loginInput)
+
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "please provide valid inputs",
+		})
+	}
+
+	token, err := h.svc.Login(loginInput.Email, loginInput.Password)
+
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(&fiber.Map{
+			"message": "please provide correct user id & password",
+		})
+	}
+
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "login",
+		"token":   token,
 	})
 }
 

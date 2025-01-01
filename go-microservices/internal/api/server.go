@@ -18,7 +18,7 @@ func StartServer(config config.AppConfig) {
 	db, err := gorm.Open(postgres.Open(config.DBConnection), &gorm.Config{})
 
 	if err != nil {
-		log.Fatalf("database connection error: %v\n", err)
+		log.Fatalf("database connection error: #{err}\n")
 	}
 
 	log.Println("database connected!")
