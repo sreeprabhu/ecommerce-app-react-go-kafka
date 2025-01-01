@@ -4,16 +4,32 @@ import (
 	config "go-react-ecommerce-app/configs"
 	"go-react-ecommerce-app/internal/api/rest"
 	"go-react-ecommerce-app/internal/api/rest/handlers"
+	"go-react-ecommerce-app/internal/domain"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func StartServer(config config.AppConfig) {
 	app := fiber.New()
+
+	db, err := gorm.Open(postgres.Open(config.DBConnection), &gorm.Config{})
+
+	if err != nil {
+		log.Fatalf("database connection error: %v\n", err)
+	}
+
+	log.Println("database connected!")
+
+	// run migration
+	db.AutoMigrate(&domain.User{})
+
 	// app.Get("/health", HealthCheck)
 	rh := &rest.RestHandler{
 		App: app,
+		DB:  db,
 	}
 
 	setupRoutes(rh)

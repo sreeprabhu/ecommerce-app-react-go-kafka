@@ -10,7 +10,8 @@ import (
 )
 
 type AppConfig struct {
-	ServerPort string
+	ServerPort   string
+	DBConnection string
 }
 
 func SetupEnv() (cnf AppConfig, err error) {
@@ -37,5 +38,10 @@ func SetupEnv() (cnf AppConfig, err error) {
 		return AppConfig{}, errors.New("env variable HTTP_PORT not found")
 	}
 
-	return AppConfig{ServerPort: httpPort}, nil
+	DBConnection := os.Getenv("DB_CONNECTION")
+	if len(DBConnection) < 1 {
+		return AppConfig{}, errors.New("env variable HTTP_PORT not found")
+	}
+
+	return AppConfig{ServerPort: httpPort, DBConnection: DBConnection}, nil
 }
