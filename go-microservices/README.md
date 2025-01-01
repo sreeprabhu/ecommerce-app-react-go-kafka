@@ -9,3 +9,7 @@
 # Install postgres driver
 
 - go get -u gorm.io/driver/postgres
+
+# Generate JWT token
+
+- go get github.com/golang-jwt/jwt/v4

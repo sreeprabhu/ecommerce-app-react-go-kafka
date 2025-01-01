@@ -22,33 +22,38 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 
 	svc := service.UserService{
 		Repo: repository.NewUserRepository(rh.DB),
+		Auth: rh.Auth,
 	}
 	handler := UserHandler{
 		svc: svc,
 	}
 
+	pubRoutes := app.Group("/users")
+	// Public endpoints
+	pubRoutes.Post("/register", handler.Register)
+	pubRoutes.Post("/login", handler.Login)
+
 	// health check
 	app.Get("/health", handler.HealthCheck)
 
-	// Public endpoints
-	app.Post("/register", handler.Register)
-	app.Post("/login", handler.Login)
+	// Auth middleware
+	pvtRoutes := pubRoutes.Group("/", rh.Auth.Authorize)
 
 	// Private endpoints
-	app.Post("/verify", handler.VerifyCode)
-	app.Get("/verify", handler.GetVerificationCode)
+	pvtRoutes.Post("/verify", handler.VerifyCode)
+	pvtRoutes.Get("/verify", handler.GetVerificationCode)
 
-	app.Post("/profile", handler.CreateProfile)
-	app.Get("/profile", handler.GetProfile)
+	pvtRoutes.Post("/profile", handler.CreateProfile)
+	pvtRoutes.Get("/profile", handler.GetProfile)
 
-	app.Post("/cart", handler.AddToCart)
-	app.Get("/cart", handler.GetCart)
+	pvtRoutes.Post("/cart", handler.AddToCart)
+	pvtRoutes.Get("/cart", handler.GetCart)
 
-	app.Get("/order", handler.CreateOrder)
-	app.Get("/order", handler.GetOrders)
-	app.Get("/order/:id", handler.GetOrder)
+	pvtRoutes.Get("/order", handler.CreateOrder)
+	pvtRoutes.Get("/order", handler.GetOrders)
+	pvtRoutes.Get("/order/:id", handler.GetOrder)
 
-	app.Post("/become-seller", handler.BecomeSeller)
+	pvtRoutes.Post("/become-seller", handler.BecomeSeller)
 }
 
 /*
@@ -73,7 +78,8 @@ func (h *UserHandler) Register(ctx *fiber.Ctx) error {
 		})
 	}
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": token,
+		"message": "User signed up!",
+		"token":   token,
 	})
 }
 
@@ -99,7 +105,7 @@ func (h *UserHandler) Login(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": "login",
+		"message": "User logged in!",
 		"token":   token,
 	})
 }

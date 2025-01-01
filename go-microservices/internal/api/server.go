@@ -5,6 +5,7 @@ import (
 	"go-react-ecommerce-app/internal/api/rest"
 	"go-react-ecommerce-app/internal/api/rest/handlers"
 	"go-react-ecommerce-app/internal/domain"
+	"go-react-ecommerce-app/internal/helper"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,10 +27,13 @@ func StartServer(config config.AppConfig) {
 	// run migration
 	db.AutoMigrate(&domain.User{})
 
+	auth := helper.SetupAuth(config.AppSecret)
+
 	// app.Get("/health", HealthCheck)
 	rh := &rest.RestHandler{
-		App: app,
-		DB:  db,
+		App:  app,
+		DB:   db,
+		Auth: auth,
 	}
 
 	setupRoutes(rh)

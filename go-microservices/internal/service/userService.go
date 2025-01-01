@@ -2,34 +2,34 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"go-react-ecommerce-app/internal/domain"
 	"go-react-ecommerce-app/internal/dto"
+	"go-react-ecommerce-app/internal/helper"
 	"go-react-ecommerce-app/internal/repository"
-	"log"
 )
 
 type UserService struct {
 	Repo repository.UserRepository
+	Auth helper.Auth
 }
 
 func (s UserService) SignUp(input dto.UserSignup) (string, error) {
-	log.Println(input)
 
-	// call db to create users
+	hashPassword, err := s.Auth.CreateHashedPassword(input.Password)
 
+	if err != nil {
+		return "", err
+	}
+
+	// call db to create user
 	user, err := s.Repo.CreateUser(domain.User{
 		Email:    input.Email,
-		Password: input.Password,
+		Password: hashPassword,
 		Phone:    input.Phone,
 	})
 
-	log.Println(user)
-
-	// generate token
-	userInfo := fmt.Sprintf("%v, %v %v", user.ID, user.Email, user.Password)
-
-	return userInfo, err
+	// generate and return token
+	return s.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
 func (s UserService) Login(email string, password string) (string, error) {
@@ -39,9 +39,15 @@ func (s UserService) Login(email string, password string) (string, error) {
 		return "", errors.New("user does not exist with the provided email id")
 	}
 
-	// compare password and generate token
+	// verify password
+	err = s.Auth.VerifyPassword(password, user.Password)
 
-	return user.Email, nil
+	if err != nil {
+		return "", err
+	}
+
+	// generate and return token
+	return s.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
 /*
